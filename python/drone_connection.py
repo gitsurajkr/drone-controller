@@ -215,14 +215,16 @@ class DroneConnection:
                 self.is_connected = True
                 self.telemetry = TelemetryData(self.vehicle)
                 self._reset_retry_state()
-                logging.info("Successfully connected to vehicle")
+                logging.info(f"✅ Successfully connected to vehicle at {connection_string}")
+                logging.info(f"🔌 Connection status: is_connected={self.is_connected}, vehicle={self.vehicle is not None}")
                 self.start_monitoring()
                 return True
                 
             except Exception as e:
                 self.current_retry_count += 1
                 self.is_connected = False
-                logging.error(f"Connection attempt {self.current_retry_count} failed: {e}")
+                logging.error(f"❌ Connection attempt {self.current_retry_count} failed: {e}")
+                logging.debug(f"🔌 Connection status: is_connected={self.is_connected}, vehicle={self.vehicle is not None}")
                 
                 if self.current_retry_count < self.max_retry_attempts:
                     delay = self._calculate_backoff_delay()
@@ -245,11 +247,14 @@ class DroneConnection:
                 self.vehicle.close()
                 self.vehicle = None
                 self.is_connected = False
-                logging.info("Disconnected from vehicle")
+                logging.info("🔌 Disconnected from vehicle")
+                logging.info(f"🔌 Connection status: is_connected={self.is_connected}, vehicle={self.vehicle is not None}")
             else:
-                logging.warning("No vehicle to disconnect")
+                logging.warning("⚠️ No vehicle to disconnect")
+                logging.info(f"🔌 Connection status: is_connected={self.is_connected}, vehicle={self.vehicle is not None}")
         except Exception as e:
-            logging.error(f"Error during disconnection: {e}")
+            logging.error(f"❌ Error during disconnection: {e}")
+            self.is_connected = False
 
     def start_monitoring(self):
         if self.thread is None or not self.thread.is_alive():
@@ -274,22 +279,34 @@ class DroneConnection:
     def get_snapshot(self):
         """Thread-safe method to get current telemetry snapshot with fallback and circuit breaker"""
         try:
-            with self.lock:
-                # Use circuit breaker for telemetry read
-                snapshot = self.telemetry_breaker.call(self._get_telemetry_snapshot)
-                
-                if snapshot:
-                    self.telemetry_snapshot = snapshot
-                    # Store in historical cache
-                    self._store_in_cache(snapshot)
-                    return snapshot
-                
-                # Return cached data if current read fails
+            # Try to acquire lock with timeout to prevent hanging
+            if self.lock.acquire(timeout=1.0):
+                try:
+                    # Use circuit breaker for telemetry read
+                    snapshot = self.telemetry_breaker.call(self._get_telemetry_snapshot)
+                    
+                    if snapshot:
+                        self.telemetry_snapshot = snapshot
+                        # Store in historical cache
+                        self._store_in_cache(snapshot)
+                        return snapshot
+                    
+                    # Return cached data if current read fails
+                    if self.telemetry_snapshot:
+                        logging.warning("Using cached telemetry data due to read failure")
+                        return self.telemetry_snapshot
+                    
+                    # Return safe defaults if no data available
+                    return self._get_default_telemetry()
+                finally:
+                    self.lock.release()
+            else:
+                # Lock acquisition timeout - return cached data or defaults
+                logging.warning("Lock acquisition timeout - using cached or default telemetry")
                 if self.telemetry_snapshot:
-                    logging.warning("Using cached telemetry data due to read failure")
-                    return self.telemetry_snapshot
-                
-                # Return safe defaults if no data available
+                    cached_data = self.telemetry_snapshot.copy()
+                    cached_data["connection_status"] = "LOCK_TIMEOUT"
+                    return cached_data
                 return self._get_default_telemetry()
                 
         except Exception as e:
@@ -337,7 +354,7 @@ class DroneConnection:
             try:
                 if not self.vehicle or not self.is_connected:
                     # Try reconnecting if disconnected
-                    logging.warning("Vehicle disconnected. Attempting reconnect...")
+                    logging.warning(f"🔄 Vehicle disconnected - vehicle={self.vehicle is not None}, is_connected={self.is_connected}")
                     success = self.connect_with_retry(self.connection_string, self.baud)
                     if not success:
                         logging.info(f"Retrying in {self.reconnect_interval}s...")
@@ -360,8 +377,8 @@ class DroneConnection:
                         f"State: {state['state']}, Heartbeat: {state['last_heartbeat']}"
                     )
 
-                    # Update cached telemetry
-                    self.get_snapshot()
+                    # Don't call get_snapshot() from monitoring thread to avoid lock contention
+                    # The WebSocket server will call get_snapshot() independently
 
                 time.sleep(1)
                 
@@ -417,10 +434,10 @@ if __name__ == "__main__":
     drone = DroneConnection()
     # Try connecting to SITL simulator first, then physical device
     connection_options = [
-        ('udp:127.0.0.1:14550', None),  # SITL UDP
-        ('tcp:127.0.0.1:5760', None),   # SITL TCP
+        # ('udp:127.0.0.1:14550', None),  # SITL UDP
+        # ('tcp:127.0.0.1:5760', None),   # SITL TCP
         ('/dev/ttyACM0', 115200),       # Physical device
-        ('/dev/ttyUSB0', 57600),        # Alternative physical device
+        # ('/dev/ttyUSB0', 57600),        # Alternative physical device
     ]
     
     connected = False
