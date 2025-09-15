@@ -116,7 +116,11 @@ class WebSocketServer:
             if field not in telemetry:
                 return False
         
-        # Check timestamp freshness (within last 10 seconds)
+        # If this is cached data due to lock timeout, accept it
+        if telemetry.get("connection_status") == "LOCK_TIMEOUT":
+            return True
+        
+        # Check timestamp freshness (within last 10 seconds) for fresh data
         if "timestamp" in telemetry:
             age = time.time() - telemetry["timestamp"]
             if age > 10:

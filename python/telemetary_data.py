@@ -142,6 +142,15 @@ class TelemetryData:
     def navigation(self):
         def get_navigation():
             gps = self.vehicle.gps_0
+            
+            # Get detailed EKF status
+            ekf_status = {
+                "ekf_ok": self.vehicle.ekf_ok if hasattr(self.vehicle, 'ekf_ok') else False,
+                "ekf_constposmode": getattr(self.vehicle, '_ekf_constposmode', False),
+                "ekf_poshorizabs": getattr(self.vehicle, '_ekf_poshorizabs', False),
+                "ekf_predposhorizabs": getattr(self.vehicle, '_ekf_predposhorizabs', False)
+            }
+            
             return {
                 "fix_type": gps.fix_type if gps and gps.fix_type is not None else 0,
                 "satellites_visible": gps.satellites_visible if gps and gps.satellites_visible is not None else 0,
@@ -154,7 +163,8 @@ class TelemetryData:
                     "alt": self.vehicle.home_location.alt if self.vehicle.home_location else None
                 },
                 "is_armable": self.vehicle.is_armable if self.vehicle.is_armable is not None else False,
-                "ekf_ok": self.vehicle.ekf_ok if hasattr(self.vehicle, 'ekf_ok') else True
+                "ekf_ok": ekf_status["ekf_ok"],
+                "ekf_detailed": ekf_status
             }
         
         return safe_vehicle_access(
@@ -163,7 +173,13 @@ class TelemetryData:
             default_value={
                 "fix_type": 0, "satellites_visible": 0, "heading": 0, 
                 "groundspeed": 0, "airspeed": 0, "home_location": {"lat": None, "lon": None, "alt": None},
-                "is_armable": False, "ekf_ok": True
+                "is_armable": False, "ekf_ok": False,
+                "ekf_detailed": {
+                    "ekf_ok": False,
+                    "ekf_constposmode": False,
+                    "ekf_poshorizabs": False,
+                    "ekf_predposhorizabs": False
+                }
             }
         )
 
@@ -240,7 +256,7 @@ class TelemetryData:
                         'battery': {"voltage": 0.0, "current": 0.0, "level": -1},
                         'control': {"armed": False, "mode": "UNKNOWN", "system_status": "UNKNOWN", "channels": {}},
                         'heartbeat': {"last_heartbeat": None, "armed": False},
-                        'navigation': {"fix_type": 0, "satellites_visible": 0, "heading": 0, "groundspeed": 0, "airspeed": 0, "home_location": {"lat": None, "lon": None, "alt": None}, "is_armable": False, "ekf_ok": True},
+                        'navigation': {"fix_type": 0, "satellites_visible": 0, "heading": 0, "groundspeed": 0, "airspeed": 0, "home_location": {"lat": None, "lon": None, "alt": None}, "is_armable": False, "ekf_ok": False, "ekf_detailed": {"ekf_ok": False, "ekf_constposmode": False, "ekf_poshorizabs": False, "ekf_predposhorizabs": False}},
                         'valid_modes': {"modes": ["STABILIZE", "GUIDED", "AUTO", "RTL", "LAND"]}
                     }
                     snapshot[name] = fallbacks.get(name, {})
@@ -257,7 +273,7 @@ class TelemetryData:
                     'battery': {"voltage": 0.0, "current": 0.0, "level": -1},
                     'control': {"armed": False, "mode": "UNKNOWN", "system_status": "UNKNOWN", "channels": {}},
                     'heartbeat': {"last_heartbeat": None, "armed": False},
-                    'navigation': {"fix_type": 0, "satellites_visible": 0, "heading": 0, "groundspeed": 0, "airspeed": 0, "home_location": {"lat": None, "lon": None, "alt": None}, "is_armable": False, "ekf_ok": True},
+                    'navigation': {"fix_type": 0, "satellites_visible": 0, "heading": 0, "groundspeed": 0, "airspeed": 0, "home_location": {"lat": None, "lon": None, "alt": None}, "is_armable": False, "ekf_ok": False, "ekf_detailed": {"ekf_ok": False, "ekf_constposmode": False, "ekf_poshorizabs": False, "ekf_predposhorizabs": False}},
                     'valid_modes': {"modes": ["STABILIZE", "GUIDED", "AUTO", "RTL", "LAND"]}
                 }
                 snapshot[name] = fallbacks.get(name, {})

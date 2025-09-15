@@ -280,7 +280,7 @@ class DroneConnection:
         """Thread-safe method to get current telemetry snapshot with fallback and circuit breaker"""
         try:
             # Try to acquire lock with timeout to prevent hanging
-            if self.lock.acquire(timeout=1.0):
+            if self.lock.acquire(timeout=0.2):  # Reduced timeout for faster fallback
                 try:
                     # Use circuit breaker for telemetry read
                     snapshot = self.telemetry_breaker.call(self._get_telemetry_snapshot)
@@ -302,7 +302,6 @@ class DroneConnection:
                     self.lock.release()
             else:
                 # Lock acquisition timeout - return cached data or defaults
-                logging.warning("Lock acquisition timeout - using cached or default telemetry")
                 if self.telemetry_snapshot:
                     cached_data = self.telemetry_snapshot.copy()
                     cached_data["connection_status"] = "LOCK_TIMEOUT"

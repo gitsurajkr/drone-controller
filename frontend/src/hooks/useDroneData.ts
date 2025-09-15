@@ -25,7 +25,9 @@ export const useDroneData = () => {
         
         // Update status based on the new telemetry structure
         setStatus({
-          connected: data.connection_status === 'CONNECTED' || data.connection_status === 'MOCK_DATA',
+          connected: data.connection_status === 'CONNECTED' || 
+                    data.connection_status === 'MOCK_DATA' || 
+                    data.connection_status === 'LOCK_TIMEOUT',
           armed: data.state?.armed || false,
           mode: data.state?.mode || 'UNKNOWN',
           battery: data.battery?.level || 0,
