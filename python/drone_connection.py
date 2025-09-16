@@ -217,6 +217,7 @@ class DroneConnection:
                 self._reset_retry_state()
                 logging.info(f"✅ Successfully connected to vehicle at {connection_string}")
                 logging.info(f"🔌 Connection status: is_connected={self.is_connected}, vehicle={self.vehicle is not None}")
+                logging.info(f"")
                 self.start_monitoring()
                 return True
                 
@@ -279,17 +280,33 @@ class DroneConnection:
     def get_snapshot(self):
         """Thread-safe method to get current telemetry snapshot with fallback and circuit breaker"""
         try:
-            # Try to acquire lock with timeout to prevent hanging
-            if self.lock.acquire(timeout=0.2):  # Reduced timeout for faster fallback
+            # Increase timeout to 2 seconds to allow fresh data collection
+            if self.lock.acquire(timeout=2.0): 
                 try:
-                    # Use circuit breaker for telemetry read
+                    logging.debug("🔒 Lock acquired - getting fresh telemetry snapshot")
                     snapshot = self.telemetry_breaker.call(self._get_telemetry_snapshot)
                     
                     if snapshot:
+                        # Add current timestamp to ensure freshness
+                        snapshot["timestamp"] = time.time()
+                        snapshot["connection_status"] = "CONNECTED"
+                        
                         self.telemetry_snapshot = snapshot
                         # Store in historical cache
                         self._store_in_cache(snapshot)
+                        
+                        # Log attitude values (yaw, pitch, roll)
+                        if 'attitude' in snapshot:
+                            attitude = snapshot['attitude']
+                            yaw = attitude.get('yaw', 0)
+                            pitch = attitude.get('pitch', 0) 
+                            roll = attitude.get('roll', 0)
+                            logging.info(f"📊 Attitude - Yaw: {yaw:.3f}°, Pitch: {pitch:.3f}°, Roll: {roll:.3f}°")
+                        else:
+                            logging.info(f"📊 Telemetry snapshot retrieved with {len(snapshot)} fields")
+                        
                         return snapshot
+
                     
                     # Return cached data if current read fails
                     if self.telemetry_snapshot:
@@ -352,8 +369,7 @@ class DroneConnection:
         while self.monitoring:
             try:
                 if not self.vehicle or not self.is_connected:
-                    # Try reconnecting if disconnected
-                    logging.warning(f"🔄 Vehicle disconnected - vehicle={self.vehicle is not None}, is_connected={self.is_connected}")
+                    logging.warning(f"Vehicle disconnected - vehicle={self.vehicle is not None}, is_connected={self.is_connected}")
                     success = self.connect_with_retry(self.connection_string, self.baud)
                     if not success:
                         logging.info(f"Retrying in {self.reconnect_interval}s...")
@@ -375,9 +391,16 @@ class DroneConnection:
                         f"Armed: {state['armed']}, Mode: {state['mode']}, "
                         f"State: {state['state']}, Heartbeat: {state['last_heartbeat']}"
                     )
-
-                    # Don't call get_snapshot() from monitoring thread to avoid lock contention
-                    # The WebSocket server will call get_snapshot() independently
+                    # while self.telemetry:
+                    #     try:
+                    #         attitude = self.telemetry.full_snapshot().get("attitude", {})
+                    #         logging.info(
+                    #             f"Attitude - Yaw: {attitude.get('yaw', 0):.3f}°, "
+                    #             f"Pitch: {attitude.get('pitch', 0):.3f}°, "
+                    #             f"Roll: {attitude.get('roll', 0):.3f}°"
+                    #         )
+                    #     except Exception as e:
+                    #         logging.error(f"Error logging attitude: {e}")
 
                 time.sleep(1)
                 
@@ -431,12 +454,8 @@ class DroneConnection:
 
 if __name__ == "__main__":
     drone = DroneConnection()
-    # Try connecting to SITL simulator first, then physical device
     connection_options = [
-        # ('udp:127.0.0.1:14550', None),  # SITL UDP
-        # ('tcp:127.0.0.1:5760', None),   # SITL TCP
-        ('/dev/ttyACM0', 115200),       # Physical device
-        # ('/dev/ttyUSB0', 57600),        # Alternative physical device
+        ('/dev/ttyACM0', 115200),       
     ]
     
     connected = False
@@ -454,7 +473,8 @@ if __name__ == "__main__":
             while True:
                 snap = drone.get_snapshot()
                 if snap:
-                    print("Latest Snapshot:", snap)
+                    # Don't print the entire snapshot, just log key info
+                    logging.info(f"Got snapshot with keys: {list(snap.keys())}")
                 time.sleep(2)
         except KeyboardInterrupt:
             logging.info("Exiting...")

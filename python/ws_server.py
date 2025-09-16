@@ -4,11 +4,9 @@ import json
 import logging
 import time
 import signal
-import sys
-from datetime import datetime, timedelta
 from drone_connection import DroneConnection
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class WebSocketServer:
     def __init__(self, host='localhost', port=8765, drone_connection=None):
@@ -108,27 +106,45 @@ class WebSocketServer:
     def is_telemetry_valid(self, telemetry):
         
         if not telemetry:
+            logging.warning("❌ Telemetry is None or empty")
             return False
         
         # Check required fields
         required_fields = ["timestamp", "position", "state", "heartbeat"]
+        missing_fields = []
         for field in required_fields:
             if field not in telemetry:
-                return False
+                missing_fields.append(field)
+        
+        if missing_fields:
+            logging.warning(f"❌ Missing required fields: {missing_fields}")
+            return False
         
         # If this is cached data due to lock timeout, accept it
         if telemetry.get("connection_status") == "LOCK_TIMEOUT":
+            logging.info("✅ Accepting LOCK_TIMEOUT telemetry as valid")
             return True
         
         # Check timestamp freshness (within last 10 seconds) for fresh data
         if "timestamp" in telemetry:
-            age = time.time() - telemetry["timestamp"]
+            current_time = time.time()
+            telemetry_time = telemetry["timestamp"]
+            age = current_time - telemetry_time
+            
+            logging.debug(f"🕐 Telemetry age: {age:.2f} seconds (current: {current_time:.2f}, telemetry: {telemetry_time:.2f})")
+            
             if age > 10:
+                logging.warning(f"❌ Telemetry too old: {age:.2f} seconds")
                 return False
         
         # Check if critical values are not None/null
-        if telemetry.get("heartbeat", {}).get("last_heartbeat") is None:
+        heartbeat = telemetry.get("heartbeat", {})
+        if heartbeat.get("last_heartbeat") is None:
+            logging.warning("❌ Heartbeat is None")
             return False
+        
+        logging.debug("✅ Telemetry validation passed")
+        return True
             
         return True
 
@@ -176,10 +192,8 @@ class WebSocketServer:
             await websocket.send(json.dumps({"error": "Server error"}))
 
     async def broadcast_telemetry(self):
-        """Enhanced telemetry broadcast with health monitoring and shutdown support"""
-        logging.info("🚀 ===== TELEMETRY BROADCAST LOOP STARTED =====")
         last_health_log = 0
-        health_log_interval = 30  # Log health every 30 seconds
+        health_log_interval = 30  
         
         try:
             while not self.shutdown_event.is_set():
@@ -189,105 +203,81 @@ class WebSocketServer:
                     # Periodic health logging
                     if current_time - last_health_log > health_log_interval:
                         health = self.get_health_status()
-                        logging.info(f"🏥 ===== SYSTEM HEALTH STATUS =====")
-                        logging.info(f"🏥 Status: {health['status']} - "
-                                   f"Clients: {health['connected_clients']}, "
-                                   f"Drone: {'✅ CONNECTED' if health['drone_connected'] else '❌ DISCONNECTED'}")
-                        logging.info(f"🏥 Messages processed: {health['messages_processed']}, Errors: {health['error_count']}")
+                        logging.info(f"Drone connected: {health['drone_connected']}, Vehicle exists: {health['vehicle_exists']}")
                         if health['last_telemetry_update']:
                             age = current_time - health['last_telemetry_update']
-                            logging.info(f"🏥 Last telemetry: {age:.1f}s ago")
                         else:
-                            logging.info(f"🏥 Last telemetry: NEVER")
-                        logging.info(f"🏥 ===============================")
+                            age = None
                         last_health_log = current_time
                     
                     if self.clients:
                         # Get telemetry data (real or mock)
                         drone_connected = self.drone_connection.is_connected
-                        vehicle_exists = self.drone_connection.vehicle is not None
-                        
-                        logging.debug(f"📡 ⚡ TELEMETRY CHECK - drone_connected={drone_connected}, vehicle_exists={vehicle_exists}, clients={len(self.clients)}")
-                        logging.debug(f"📡 ⚡ DroneConnection state: is_connected={self.drone_connection.is_connected}, vehicle type={type(self.drone_connection.vehicle)}")
-                        
-                        if drone_connected:
-                            logging.info(f"📡 ⚡ ENTERING TELEMETRY BLOCK - About to get snapshot from drone")
-                            logging.info("📊 Getting real telemetry from drone...")
-                            
-                            # Check if DroneConnection is actually connected before calling get_snapshot
+                        if drone_connected:                
+
                             if not self.drone_connection.is_connected:
-                                logging.error("📊 ❌ DroneConnection says it's not connected - attempting reconnection...")
                                 await self.attempt_drone_connection()
                                 if not self.drone_connection.is_connected:
-                                    logging.error("📊 ❌ Reconnection failed - skipping telemetry")
                                     continue
                             
                             # Check if vehicle object exists
                             if not self.drone_connection.vehicle:
-                                logging.error("📊 ❌ Vehicle object is None - skipping telemetry")
                                 continue
                                 
                             try:
-                                # Add timeout to prevent hanging
-                                logging.info("📊 🔄 About to call get_snapshot() with asyncio.to_thread...")
-                                telemetry = await asyncio.wait_for(
-                                    asyncio.to_thread(self.drone_connection.get_snapshot),
-                                    timeout=5.0  # 5 second timeout
-                                )
-                                logging.info(f"📊 ✅ Got telemetry response: type={type(telemetry)}, is_none={telemetry is None}")
-                                if telemetry:
-                                    logging.info(f"📊 ✅ Telemetry keys: {list(telemetry.keys()) if isinstance(telemetry, dict) else 'Not a dict'}")
+                                # Force fresh telemetry collection by calling telemetry directly
+                                logging.debug("🔄 Forcing fresh telemetry collection...")
+                                
+                                # Try to get fresh telemetry directly from the telemetry object
+                                if self.drone_connection.telemetry:
+                                    fresh_telemetry = await asyncio.to_thread(
+                                        self.drone_connection.telemetry.full_snapshot
+                                    )
+                                    if fresh_telemetry:
+                                        # Add fresh timestamp and connection status
+                                        fresh_telemetry["timestamp"] = time.time()
+                                        fresh_telemetry["connection_status"] = "CONNECTED"
+                                        telemetry = fresh_telemetry
+                                        logging.debug("✅ Got fresh telemetry directly from telemetry object")
+                                    else:
+                                        # Fallback to get_snapshot with timeout
+                                        telemetry = await asyncio.wait_for(
+                                            asyncio.to_thread(self.drone_connection.get_snapshot),
+                                            timeout=3.0
+                                        )
+                                else:
+                                    # Fallback to get_snapshot with timeout
+                                    telemetry = await asyncio.wait_for(
+                                        asyncio.to_thread(self.drone_connection.get_snapshot),
+                                        timeout=3.0
+                                    )
+                                
                             except asyncio.TimeoutError:
-                                logging.error("📊 ❌ TIMEOUT: get_snapshot() took longer than 5 seconds!")
-                                logging.error("📊 🔍 DEBUG: This suggests get_snapshot() is hanging inside DroneKit vehicle access")
+                                logging.warning("⏰ Telemetry collection timeout - using fallback")
                                 telemetry = None
                             except Exception as e:
-                                logging.error(f"📊 ❌ EXCEPTION in get_snapshot(): {e}")
+                                logging.error(f"❌ Error getting telemetry: {e}")
                                 telemetry = None
                             
                             # Debug logging for telemetry data
                             if telemetry:
-                                logging.info(f"📊 ===== DRONE TELEMETRY SNAPSHOT =====")
-                                logging.info(f"📊 Timestamp: {telemetry.get('timestamp')}")
-                                logging.info(f"📊 Connection Status: {telemetry.get('connection_status')}")
+                                # Log telemetry freshness
+                                current_time = time.time()
+                                telemetry_time = telemetry.get("timestamp", current_time)
+                                age = current_time - telemetry_time
+                                connection_status = telemetry.get("connection_status", "UNKNOWN")
                                 
-                                # Position data
-                                if 'position' in telemetry:
-                                    pos = telemetry['position']
-                                    logging.info(f"📍 Position - Lat: {pos.get('latitude'):.6f}, Lon: {pos.get('longitude'):.6f}, Alt: {pos.get('altitude'):.1f}m")
-                                
-                                # Vehicle state
-                                if 'state' in telemetry:
-                                    state = telemetry['state']
-                                    logging.info(f"🚁 State - Armed: {state.get('armed')}, Mode: {state.get('mode')}, Status: {state.get('system_status')}")
-                                
-                                # Battery info
-                                if 'battery' in telemetry:
-                                    bat = telemetry['battery']
-                                    logging.info(f"🔋 Battery - Level: {bat.get('level')}%, Voltage: {bat.get('voltage'):.1f}V, Current: {bat.get('current'):.1f}A")
-                                
-                                # Navigation data
-                                if 'navigation' in telemetry:
-                                    nav = telemetry['navigation']
-                                    logging.info(f"🧭 Navigation - Sats: {nav.get('satellites_visible')}, Fix: {nav.get('fix_type')}, Speed: {nav.get('groundspeed'):.1f}m/s")
-                                
-                                # Attitude
+                                logging.info(f"📊 Telemetry: age={age:.2f}s, status={connection_status}")
+                               
+                                # Attitude with timestamp for tracking changes
                                 if 'attitude' in telemetry:
                                     att = telemetry['attitude']
-                                    logging.info(f"📐 Attitude - Roll: {att.get('roll'):.1f}°, Pitch: {att.get('pitch'):.1f}°, Yaw: {att.get('yaw'):.1f}°")
+                                    logging.info(f"📐 Attitude [{int(current_time)}] - Roll: {att.get('roll'):.3f}°, Pitch: {att.get('pitch'):.3f}°, Yaw: {att.get('yaw'):.3f}°")
                                 
-                                # Heartbeat
-                                if 'heartbeat' in telemetry:
-                                    hb = telemetry['heartbeat']
-                                    logging.info(f"Heartbeat - Last: {hb.get('last_heartbeat')}, Armed: {hb.get('armed')}")
-                                
-                                logging.info(f"📊 Available data keys: {list(telemetry.keys())}")
-                                logging.info(f"📊 =====================================")
                             else:
                                 logging.warning("📊 No telemetry data received from drone!")
                         else:
-                            logging.debug(f"📡 ⚠️ SKIPPING TELEMETRY - drone_connected={drone_connected}, is_connected={self.drone_connection.is_connected}")
-                            logging.debug(f"📡 ⚠️ Vehicle object: {self.drone_connection.vehicle}")
+                            
                             
                             # Attempt reconnection more frequently when clients are waiting for data
                             if int(current_time) % 10 == 0:  # Try every 10 seconds instead of 30
@@ -299,15 +289,14 @@ class WebSocketServer:
                             
                             # Send mock telemetry data when drone is not connected
                             # telemetry = self._get_mock_telemetry()
-                            await asyncio.sleep(2)  # Sleep when drone disconnected to prevent spam
+                            await asyncio.sleep(2)  
                             continue
                         
                         if self.is_telemetry_valid(telemetry):
                             self.last_telemetry_update = current_time
                             message = json.dumps(telemetry)
                             
-                            logging.info(f"📡 ✅ BROADCASTING telemetry to {len(self.clients)} clients")
-                            logging.info(f"📡 Data size: {len(message)} bytes")
+                 
                             
                             async with self.lock:
                                 clients_to_remove = set()
@@ -315,35 +304,32 @@ class WebSocketServer:
                                 for client in self.clients:
                                     try:
                                         await client.send(message)
-                                        logging.info(f"📡 ✅ Sent telemetry to client {client.remote_address}")
                                     except websockets.exceptions.ConnectionClosed:
                                         clients_to_remove.add(client)
-                                        logging.warning(f"📡 ❌ Client {client.remote_address} disconnected")
                                     except Exception as e:
-                                        logging.error(f"📡 ❌ Error sending telemetry to client: {e}")
                                         clients_to_remove.add(client)
                                 
                                 # Remove disconnected clients
                                 self.clients -= clients_to_remove
-                                if clients_to_remove:
-                                    logging.info(f"📡 Removed {len(clients_to_remove)} disconnected clients")
+
                         else:
-                            logging.warning(f"❌ Invalid telemetry data, skipping broadcast. Data: {telemetry}")
+                            logging.warning("❌ Telemetry validation failed - investigating...")
                             
                             # Try to fix telemetry validation issues
                             if telemetry:
-                                logging.warning(f"❌ Telemetry validation failed. Keys: {list(telemetry.keys())}")
-                                for required in ["timestamp", "position", "state", "heartbeat"]:
-                                    if required not in telemetry:
-                                        logging.warning(f"❌ Missing required field: {required}")
+                                logging.warning(f"❌ Telemetry has keys: {list(telemetry.keys())}")
+                                
                                 if "timestamp" in telemetry:
                                     age = time.time() - telemetry["timestamp"]
                                     logging.warning(f"❌ Telemetry age: {age:.2f} seconds")
+                                    
                                 if "heartbeat" in telemetry and telemetry["heartbeat"].get("last_heartbeat") is None:
                                     logging.warning(f"❌ Invalid heartbeat: {telemetry['heartbeat']}")
+                            else:
+                                logging.warning("❌ Telemetry is None or empty")
                     else:
                         logging.info(f"⏸️ No clients connected ({len(self.clients)}) - skipping telemetry broadcast")
-                        await asyncio.sleep(5)  # Sleep longer when no clients
+                        await asyncio.sleep(5)  
                         continue
                     
                     await asyncio.sleep(1)
@@ -351,7 +337,7 @@ class WebSocketServer:
                 except Exception as e:
                     if not self.shutdown_event.is_set():
                         logging.error(f"Broadcast error: {e}")
-                        await asyncio.sleep(5)  # Back off on error
+                        await asyncio.sleep(5)  
                         
         except asyncio.CancelledError:
             logging.info("Broadcast task cancelled")
@@ -359,7 +345,7 @@ class WebSocketServer:
         finally:
             logging.info("Broadcast telemetry stopped")
 
-    async def graceful_shutdown(self, timeout=10):
+    async def graceful_shutdown(self):
         """Perform graceful shutdown of the server"""
         if self.is_shutting_down:
             return
@@ -409,7 +395,7 @@ class WebSocketServer:
             
             # Close WebSocket server
             if self.server:
-                self.server.close()
+                await self.server.close()
                 try:
                     await asyncio.wait_for(self.server.wait_closed(), timeout=5)
                 except asyncio.TimeoutError:
@@ -444,8 +430,6 @@ class WebSocketServer:
         """Enhanced server start with graceful shutdown support"""
         try:
             self.setup_signal_handlers()
-            
-            # Try to connect to drone before starting server
             logging.info("🔌 Attempting to connect to drone...")
             await self.attempt_drone_connection()
             
@@ -473,10 +457,7 @@ class WebSocketServer:
                         break  # Shutdown event was set
                     except asyncio.TimeoutError:
                         # Check every second for shutdown
-                        continue
-                        
-                logging.info("📤 Shutdown signal received, starting graceful shutdown...")
-                
+                        continue                
             except KeyboardInterrupt:
                 logging.info("⌨️ Keyboard interrupt received")
                 self.shutdown_event.set()
@@ -513,7 +494,6 @@ class WebSocketServer:
             except Exception as e:
                 logging.error(f"❌ Connection error for {connection_string}: {e}")
         
-        logging.warning("⚠️ No drone connection established. Server will run with mock/no data.")
         return False
 
 

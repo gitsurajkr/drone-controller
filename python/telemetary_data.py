@@ -198,9 +198,7 @@ class TelemetryData:
                     "THROW", "AVOID_ADSB", "GUIDED_NOGPS", "SMART_RTL"
                 ]
                 
-                # Try to get the actual available modes from the vehicle parameters
                 try:
-                    # Check if we can access vehicle parameters to get supported modes
                     if hasattr(self.vehicle, 'parameters') and self.vehicle.parameters:
                         # For now, return common modes - could be enhanced to read actual supported modes
                         return {"modes": common_modes[:8]}  # Return first 8 common modes
@@ -237,17 +235,14 @@ class TelemetryData:
             ('valid_modes', self.valid_flight_modes)
         ]
         
-        # Collect telemetry with aggressive timeout and fallbacks
         for name, method in telemetry_methods:
             try:
-                # Use very short timeout - if it doesn't respond in 0.5s, skip it
                 result = safe_vehicle_access(method, timeout_seconds=0.5, default_value=None)
                 
                 if result is not None:
                     snapshot[name] = result
                     logging.debug(f"✅ Got {name}: {result}")
                 else:
-                    # Provide safe fallback
                     fallbacks = {
                         'position': {"latitude": 0.0, "longitude": 0.0, "altitude": 0.0},
                         'velocity': {"vx": 0.0, "vy": 0.0, "vz": 0.0},
@@ -264,7 +259,6 @@ class TelemetryData:
                     
             except Exception as e:
                 logging.error(f"❌ Error getting {name}: {e}")
-                # Use fallback on error
                 fallbacks = {
                     'position': {"latitude": 0.0, "longitude": 0.0, "altitude": 0.0},
                     'velocity': {"vx": 0.0, "vy": 0.0, "vz": 0.0},
@@ -278,11 +272,11 @@ class TelemetryData:
                 }
                 snapshot[name] = fallbacks.get(name, {})
         
-        # Ensure we have all required fields
         required_fields = ['position', 'velocity', 'attitude', 'state', 'battery', 'control', 'heartbeat', 'navigation', 'valid_modes']
         for field in required_fields:
             if field not in snapshot:
                 snapshot[field] = {}
         
-        logging.info(f"📊 Snapshot collected with {len(snapshot)} fields in <1s")
+        logging.info(f"Snapshot collected with {len(snapshot)} fields in <1s")
+        logging.debug(f"Full snapshot: {snapshot}")
         return snapshot

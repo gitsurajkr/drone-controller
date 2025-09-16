@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Callable, Any, Optional
 
 class CircuitBreakerState(Enum):
-    CLOSED = "CLOSED"     # Normal operation
-    OPEN = "OPEN"         # Failures detected, blocking requests
+    CLOSED = "CLOSED"    
+    OPEN = "OPEN"         
     HALF_OPEN = "HALF_OPEN"  # Testing if service recovered
 
 class CircuitBreaker:
@@ -117,5 +117,4 @@ class CircuitBreakerRegistry:
         for breaker in self.breakers.values():
             breaker.reset()
 
-# Global registry instance
 circuit_breaker_registry = CircuitBreakerRegistry()
