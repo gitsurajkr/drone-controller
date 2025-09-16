@@ -67,8 +67,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
               <div className="absolute inset-0 bg-cyan-400/20 rounded-full animate-ping" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">COMMAND</h2>
-              <p className="text-xs text-cyan-400 font-mono">CENTER</p>
+              <h2 className="text-lg font-bold text-cyan-400">OPERATIONS</h2>
+              <p className="text-xs text-cyan-400 font-mono">CONSOLE</p>
             </div>
           </div>
           <div className="h-px bg-gradient-to-r from-cyan-400/50 via-transparent to-transparent" />

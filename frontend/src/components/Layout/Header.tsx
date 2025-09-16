@@ -11,6 +11,7 @@ import {
   Shield,
   Activity
 } from 'lucide-react';
+import droneImage from '../../assets/drone.png';
 import type { DroneStatus } from '../../types';
 
 interface HeaderProps {
@@ -37,12 +38,12 @@ export const Header: React.FC<HeaderProps> = ({ status, isConnected }) => {
         {/* Left Side - Logo and Title */}
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <Plane className="h-10 w-10 text-cyan-400 animate-pulse" />
+            <img src={droneImage} alt="Drone" className="w-8 h-8" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
           </div>
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              TACTICAL DRONE CONTROL
+              SkyCommand
             </h1>
             <p className="text-xs text-gray-400 font-mono">{getCurrentTime()}</p>
           </div>
@@ -120,13 +121,13 @@ export const Header: React.FC<HeaderProps> = ({ status, isConnected }) => {
         {/* Right Side - System Controls */}
         <div className="flex items-center space-x-4">
           {/* System Status */}
-          <div className="hidden md:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-green-400/30">
+          {/* <div className="hidden md:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-green-400/30">
             <Shield className="h-5 w-5 text-green-400" />
             <div className="flex flex-col">
               <span className="text-xs text-green-400 font-bold">SECURE</span>
               <span className="text-xs text-gray-400">All Systems</span>
             </div>
-          </div>
+          </div> */}
 
           {/* Performance Indicator */}
           <div className="hidden xl:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-blue-400/30">
@@ -138,9 +139,9 @@ export const Header: React.FC<HeaderProps> = ({ status, isConnected }) => {
           </div>
 
           {/* Settings */}
-          <button className="p-3 hover:bg-gray-700/50 rounded-lg transition-all duration-200 border border-gray-700/50 hover:border-cyan-400/30 group">
+          {/* <button className="p-3 hover:bg-gray-700/50 rounded-lg transition-all duration-200 border border-gray-700/50 hover:border-cyan-400/30 group">
             <Settings className="h-6 w-6 text-gray-400 group-hover:text-cyan-400 transition-colors duration-200" />
-          </button>
+          </button> */}
 
           {/* Emergency Button */}
           <button className="bg-red-600/20 hover:bg-red-600/30 border border-red-400/30 text-red-400 px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 hover:glow-red">
