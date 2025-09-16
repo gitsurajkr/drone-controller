@@ -1,6 +1,6 @@
 // src/components/Layout/MainLayout.tsx
 import React, { useState } from 'react';
-import { Header } from './Header';
+import Header from './Header';
 import { Sidebar } from './Sidebar';
 import { FlightDataPage } from '../../pages/FlightDataPage';
 import { useDroneData } from '../../hooks/useDroneData';
@@ -11,7 +11,13 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = () => {
-  const { status, isConnected } = useDroneData();
+  const { 
+    status, 
+    isConnected, 
+    connectionStatus, 
+    connectDrone, 
+    disconnectDrone 
+  } = useDroneData();
   const [activeTab, setActiveTab] = useState('flight-data');
 
   const renderContent = () => {
@@ -152,7 +158,13 @@ export const MainLayout: React.FC<MainLayoutProps> = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-950 relative overflow-hidden">
-      <Header status={status} isConnected={isConnected} />
+      <Header 
+        status={status} 
+        isConnected={isConnected}
+        connectionStatus={connectionStatus}
+        onConnect={connectDrone}
+        onDisconnect={disconnectDrone}
+      />
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
         <main className="flex-1 overflow-auto relative">

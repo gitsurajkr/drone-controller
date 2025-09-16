@@ -143,6 +143,108 @@ app.get('/telemetry/history', (req, res) => {
     }
 });
 
+// Connection control endpoints
+app.post('/drone/connect', async (req, res) => {
+    try {
+        if (isShuttingDown) {
+            res.status(503).json({ error: 'Service shutting down' });
+            return;
+        }
+        
+        console.log('[Server] Manual drone connection requested');
+        
+        if (droneService.isConnected()) {
+            res.json({ 
+                success: true, 
+                message: 'Drone already connected',
+                connection_state: droneService.getConnectionState()
+            });
+            return;
+        }
+        
+        // Send connect command to drone via WebSocket
+        const droneWS = droneService.getDroneWS();
+        if (droneWS) {
+            const success = droneWS.sendMessage({ action: 'connect' });
+            if (success) {
+                res.json({ 
+                    success: true, 
+                    message: 'Connection request sent to drone',
+                    connection_state: droneService.getConnectionState()
+                });
+            } else {
+                res.status(500).json({ 
+                    success: false, 
+                    error: 'Failed to send connection request' 
+                });
+            }
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                error: 'WebSocket connection not available' 
+            });
+        }
+    } catch (err) {
+        console.error('[Server] /drone/connect endpoint error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/drone/disconnect', async (req, res) => {
+    try {
+        if (isShuttingDown) {
+            res.status(503).json({ error: 'Service shutting down' });
+            return;
+        }
+        
+        console.log('[Server] Manual drone disconnection requested');
+        
+        // Send disconnect command to drone via WebSocket
+        const droneWS = droneService.getDroneWS();
+        if (droneWS) {
+            const success = droneWS.sendMessage({ action: 'disconnect' });
+            if (success) {
+                res.json({ 
+                    success: true, 
+                    message: 'Disconnection request sent to drone',
+                    connection_state: droneService.getConnectionState()
+                });
+            } else {
+                res.status(500).json({ 
+                    success: false, 
+                    error: 'Failed to send disconnection request' 
+                });
+            }
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                error: 'WebSocket connection not available' 
+            });
+        }
+    } catch (err) {
+        console.error('[Server] /drone/disconnect endpoint error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.get('/drone/status', (req, res) => {
+    try {
+        if (isShuttingDown) {
+            res.status(503).json({ error: 'Service shutting down' });
+            return;
+        }
+        
+        res.json({
+            connected: droneService.isConnected(),
+            connection_state: droneService.getConnectionState(),
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error('[Server] /drone/status endpoint error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Start services
 const startServices = async () => {
     try {

@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import { DroneMap } from '../components/Map/DroneMap';
 import FlightInstruments from '../components/Telemetry/FlightInstruments';
 import { TelemetryMonitor } from '../components/Controls/TelemetryMonitor';
+import { HealthMonitor } from '../components/System/HealthMonitor';
 import { useDroneData } from '../hooks/useDroneData';
 import { 
   Expand, 
   Minimize, 
   Target, 
-  Radar, 
   Crosshair,
   Activity,
-  Navigation,
-  Gauge
+  Gauge,
+  Navigation
 } from 'lucide-react';
 
 interface FlightDataPageProps {
@@ -21,12 +21,14 @@ interface FlightDataPageProps {
 }
 
 export const FlightDataPage: React.FC<FlightDataPageProps> = ({ 
-  mapFocus = false, 
-  instrumentsFocus = false 
+  mapFocus = false,
+  instrumentsFocus = false
 }) => {
   const { telemetry } = useDroneData();
   const [isFullscreenMap, setIsFullscreenMap] = useState(mapFocus);
-  const [activeView, setActiveView] = useState<'overview' | 'instruments' | 'telemetry'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'instruments' | 'telemetry' | 'health'>(
+    instrumentsFocus ? 'instruments' : 'overview'
+  );
 
   if (isFullscreenMap) {
     return (
@@ -199,7 +201,7 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
               </div> */}
               
               {/* View Selector */}
-              {/* <div className="flex items-center space-x-2 bg-gray-800/60 rounded-lg p-1">
+              <div className="flex items-center space-x-2 bg-gray-800/60 rounded-lg p-1">
                 <button
                   onClick={() => setActiveView('overview')}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -234,7 +236,7 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
                   Telemetry
                 </button>
               </div>
-            </div>
+            {/* </div>
           </div>
         </div> */}
 
@@ -512,6 +514,49 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
           {activeView === 'telemetry' && (
             <div className="h-full">
               <TelemetryMonitor telemetry={telemetry} />
+            </div>
+          )}
+
+          {activeView === 'health' && (
+            <div className="h-full p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                <HealthMonitor className="h-fit" />
+                <div className="bg-gray-900/60 backdrop-blur-sm border border-cyan-400/20 rounded-xl overflow-hidden shadow-2xl p-6">
+                  <h3 className="text-lg font-bold text-cyan-400 mb-6 flex items-center font-mono">
+                    <Target className="h-5 w-5 mr-2" style={{ filter: "drop-shadow(0 0 4px #06b6d4)" }} />
+                    ◄ BACKEND STATUS
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="bg-gray-800/60 rounded-lg p-4 border border-cyan-400/10">
+                      <div className="text-sm text-cyan-400/70 mb-2 font-mono">Backend Endpoints:</div>
+                      <div className="text-xs font-mono text-gray-300 space-y-1">
+                        <div>• GET /telemetry - Real-time telemetry data</div>
+                        <div>• GET /health - System health monitoring</div>
+                        <div>• GET /telemetry/history - Historical data</div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-lg p-4 border border-cyan-400/10">
+                      <div className="text-sm text-cyan-400/70 mb-2 font-mono">Data Sources:</div>
+                      <div className="text-xs font-mono text-gray-300 space-y-1">
+                        <div>• Python DroneKit Backend</div>
+                        <div>• WebSocket Server (Port 8765)</div>
+                        <div>• Node.js API Server (Port 3000)</div>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/60 rounded-lg p-4 border border-cyan-400/10">
+                      <div className="text-sm text-cyan-400/70 mb-2 font-mono">Connection Status:</div>
+                      <div className="text-sm font-mono">
+                        <span className={`font-bold ${
+                          telemetry?.connection_status === 'CONNECTED' ? 'text-green-400' : 
+                          telemetry?.connection_status === 'LOCK_TIMEOUT' ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {telemetry?.connection_status || 'UNKNOWN'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

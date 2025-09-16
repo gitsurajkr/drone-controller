@@ -1,14 +1,10 @@
 // src/components/Layout/Header.tsx
-import React from 'react';
 import { 
-  Plane, 
   Wifi, 
   WifiOff, 
   Battery, 
   Satellite,
-  Settings,
   Zap,
-  Shield,
   Activity
 } from 'lucide-react';
 import droneImage from '../../assets/drone.png';
@@ -17,9 +13,46 @@ import type { DroneStatus } from '../../types';
 interface HeaderProps {
   status: DroneStatus;
   isConnected: boolean;
+  connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'disconnecting';
+  onConnect: () => Promise<boolean>;
+  onDisconnect: () => Promise<boolean>;
 }
 
-export const Header: React.FC<HeaderProps> = ({ status, isConnected }) => {
+export default function Header({ status, isConnected, connectionStatus, onConnect, onDisconnect }: HeaderProps) {
+  const handleConnectionToggle = async () => {
+    if (connectionStatus === 'connecting' || connectionStatus === 'disconnecting') return;
+    
+    try {
+      if (isConnected) {
+        await onDisconnect();
+      } else {
+        await onConnect();
+      }
+    } catch (error) {
+      console.error('Connection operation failed:', error);
+    }
+  };
+
+  const getConnectionButtonText = () => {
+    if (connectionStatus === 'connecting') return 'Connecting...';
+    if (connectionStatus === 'disconnecting') return 'Disconnecting...';
+    return isConnected ? 'Disconnect' : 'Connect';
+  };
+
+  const getConnectionButtonClass = () => {
+    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg";
+    
+    if (connectionStatus === 'connecting' || connectionStatus === 'disconnecting') {
+      return `${baseClass} bg-yellow-600 text-yellow-100 cursor-not-allowed opacity-75`;
+    }
+    
+    if (isConnected) {
+      return `${baseClass} bg-red-600 hover:bg-red-700 text-red-100 border border-red-500`;
+    }
+    
+    return `${baseClass} bg-green-600 hover:bg-green-700 text-green-100 border border-green-500`;
+  };
+
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('en-US', { 
       hour12: false,
@@ -142,6 +175,24 @@ export const Header: React.FC<HeaderProps> = ({ status, isConnected }) => {
           {/* <button className="p-3 hover:bg-gray-700/50 rounded-lg transition-all duration-200 border border-gray-700/50 hover:border-cyan-400/30 group">
             <Settings className="h-6 w-6 text-gray-400 group-hover:text-cyan-400 transition-colors duration-200" />
           </button> */}
+
+          {/* Connection Control */}
+          <button
+            onClick={handleConnectionToggle}
+            disabled={connectionStatus === 'connecting' || connectionStatus === 'disconnecting'}
+            className={getConnectionButtonClass()}
+          >
+            <div className="flex items-center space-x-2">
+              {connectionStatus === 'connecting' || connectionStatus === 'disconnecting' ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : isConnected ? (
+                <WifiOff className="h-4 w-4" />
+              ) : (
+                <Wifi className="h-4 w-4" />
+              )}
+              <span className="text-sm font-bold">{getConnectionButtonText()}</span>
+            </div>
+          </button>
 
           {/* Emergency Button */}
           <button className="bg-red-600/20 hover:bg-red-600/30 border border-red-400/30 text-red-400 px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 hover:glow-red">

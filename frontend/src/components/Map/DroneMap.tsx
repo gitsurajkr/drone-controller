@@ -21,14 +21,6 @@ const droneIcon = new Icon({
   popupAnchor: [0, -16],
 });
 
-// Custom waypoint icon
-const waypointIcon = new Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNmZmZmMDAiIGZpbGwtb3BhY2l0eT0iMC4zIiBzdHJva2U9IiNmZmZmMDAiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIzIiBmaWxsPSIjZmZmZjAwIi8+Cjwvc3ZnPg==',
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-  popupAnchor: [0, -12],
-});
-
 interface DroneMapProps {
   telemetry: TelemetryData;
   waypoints?: Waypoint[];

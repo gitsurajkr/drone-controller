@@ -1,6 +1,7 @@
 // src/types/index.ts
 export interface TelemetryData {
   timestamp?: number;
+  connection_status?: string;
   position?: {
     latitude: number;
     longitude: number;
@@ -49,11 +50,44 @@ export interface TelemetryData {
     };
     is_armable: boolean;
     ekf_ok: boolean;
+    ekf_detailed?: {
+      ekf_ok: boolean;
+      ekf_constposmode: boolean;
+      ekf_poshorizabs: boolean;
+      ekf_predposhorizabs: boolean;
+    };
   };
   valid_modes?: {
     modes: string[];
   };
-  connection_status?: string;
+}
+
+export interface HealthData {
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  uptime?: number;
+  timestamp?: string;
+  drone?: {
+    connected: boolean;
+    connection_state: string;
+  };
+  cache?: {
+    total_entries: number;
+    oldest_entry_age_ms: number;
+    newest_entry_age_ms: number;
+    cache_size_estimate_kb: number;
+    current_size: number;
+    max_size: number;
+  };
+}
+
+export interface TelemetryHistory {
+  entries: {
+    timestamp: number;
+    data: TelemetryData;
+  }[];
+  total: number;
 }
 
 export interface Waypoint {
