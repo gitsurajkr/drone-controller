@@ -8,7 +8,7 @@ export class DroneService {
 
     constructor(
         private cacheService: CacheService,
-        private wsUrl: string = 'ws://localhost:8765',
+        private wsUrl: string = 'ws://10.238.221.234:8765',
         telemetryIntervalMs: number = 1000
     ) {
         this.telemetryIntervalMs = telemetryIntervalMs;

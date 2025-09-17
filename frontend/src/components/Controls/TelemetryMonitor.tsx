@@ -109,33 +109,10 @@ export const TelemetryMonitor: React.FC<TelemetryMonitorProps> = ({ telemetry })
               ► TACTICAL COMMAND CENTER
             </h1>
           </div>
-          
-          {/* Connection Button with Tactical Styling */}
-          <button
-            onClick={handleConnection}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-bold font-mono transition-all duration-300 border-2 ${
-              connectionStatus === 'connected' 
-                ? 'bg-green-600/20 border-green-400 text-green-400 hover:bg-green-600/30 shadow-lg shadow-green-400/25' 
-                : connectionStatus === 'connecting'
-                ? 'bg-yellow-600/20 border-yellow-400 text-yellow-400 hover:bg-yellow-600/30 shadow-lg shadow-yellow-400/25 animate-pulse'
-                : 'bg-red-600/20 border-red-400 text-red-400 hover:bg-red-600/30 shadow-lg shadow-red-400/25'
-            }`}
-          >
-            {connectionStatus === 'connected' ? (
-              <Wifi className="h-5 w-5" />
-            ) : (
-              <WifiOff className="h-5 w-5" />
-            )}
-            <span>
-              {connectionStatus === 'connected' ? 'LINK ACTIVE' : 
-               connectionStatus === 'connecting' ? 'ESTABLISHING...' : 'CONNECT DRONE'}
-            </span>
-          </button>
         </div>
       </div>
 
       <div className="flex h-screen relative">
-        {/* Map Area - 60% */}
         <div className="w-3/5 relative bg-gray-900/50 backdrop-blur-sm border-r-2 border-cyan-400/20">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center bg-gray-900/80 backdrop-blur-sm rounded-xl p-8 border border-cyan-400/30 shadow-2xl">

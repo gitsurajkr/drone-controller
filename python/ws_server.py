@@ -9,7 +9,7 @@ from drone_connection import DroneConnection
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s] %(message)s")
 
 class WebSocketServer:
-    def __init__(self, host='localhost', port=8765, drone_connection=None):
+    def __init__(self, host='0.0.0.0', port=8765, drone_connection=None):
         self.host = host
         self.port = port
         self.drone_connection = drone_connection or DroneConnection()
@@ -39,13 +39,13 @@ class WebSocketServer:
             async for message in websocket:
                 await self.process_message(websocket, message)
         except websockets.exceptions.ConnectionClosed:
-            logging.info(f"🔌 Client disconnected: {websocket.remote_address}")
+            logging.info(f"Client disconnected: {websocket.remote_address}")
         except Exception as e:
-            logging.error(f"❌ Error in handler: {e}")
+            logging.error(f"Error in handler: {e}")
         finally:
             async with self.lock:
                 self.clients.discard(websocket)
-            logging.info(f"🔌 Client removed: {websocket.remote_address} (Total clients: {len(self.clients)})")
+            logging.info(f"Client removed: {websocket.remote_address} (Total clients: {len(self.clients)})")
 
     def get_health_status(self):
         """Get comprehensive health status"""
@@ -287,8 +287,6 @@ class WebSocketServer:
                                     logging.info("✅ Drone reconnected successfully!")
                                     continue  # Skip sleep and try getting telemetry immediately
                             
-                            # Send mock telemetry data when drone is not connected
-                            # telemetry = self._get_mock_telemetry()
                             await asyncio.sleep(2)  
                             continue
                         
@@ -313,18 +311,18 @@ class WebSocketServer:
                                 self.clients -= clients_to_remove
 
                         else:
-                            logging.warning("❌ Telemetry validation failed - investigating...")
+                            logging.warning("Telemetry validation failed - investigating...")
                             
                             # Try to fix telemetry validation issues
                             if telemetry:
-                                logging.warning(f"❌ Telemetry has keys: {list(telemetry.keys())}")
+                                logging.warning(f"Telemetry has keys: {list(telemetry.keys())}")
                                 
                                 if "timestamp" in telemetry:
                                     age = time.time() - telemetry["timestamp"]
-                                    logging.warning(f"❌ Telemetry age: {age:.2f} seconds")
+                                    logging.warning(f"Telemetry age: {age:.2f} seconds")
                                     
                                 if "heartbeat" in telemetry and telemetry["heartbeat"].get("last_heartbeat") is None:
-                                    logging.warning(f"❌ Invalid heartbeat: {telemetry['heartbeat']}")
+                                    logging.warning(f"Invalid heartbeat: {telemetry['heartbeat']}")
                             else:
                                 logging.warning("❌ Telemetry is None or empty")
                     else:

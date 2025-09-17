@@ -153,15 +153,6 @@ export default function Header({ status, isConnected, connectionStatus, onConnec
 
         {/* Right Side - System Controls */}
         <div className="flex items-center space-x-4">
-          {/* System Status */}
-          {/* <div className="hidden md:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-green-400/30">
-            <Shield className="h-5 w-5 text-green-400" />
-            <div className="flex flex-col">
-              <span className="text-xs text-green-400 font-bold">SECURE</span>
-              <span className="text-xs text-gray-400">All Systems</span>
-            </div>
-          </div> */}
-
           {/* Performance Indicator */}
           <div className="hidden xl:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-blue-400/30">
             <Activity className="h-5 w-5 text-blue-400" />
@@ -170,11 +161,6 @@ export default function Header({ status, isConnected, connectionStatus, onConnec
               <span className="text-xs text-gray-400">Efficiency</span>
             </div>
           </div>
-
-          {/* Settings */}
-          {/* <button className="p-3 hover:bg-gray-700/50 rounded-lg transition-all duration-200 border border-gray-700/50 hover:border-cyan-400/30 group">
-            <Settings className="h-6 w-6 text-gray-400 group-hover:text-cyan-400 transition-colors duration-200" />
-          </button> */}
 
           {/* Connection Control */}
           <button
