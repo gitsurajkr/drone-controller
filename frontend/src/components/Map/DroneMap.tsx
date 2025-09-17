@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import { Icon, LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { TelemetryData, Waypoint } from '../../types';
+import { DroneCompass } from './DroneCompass';
+// import GoogleMapTracker from './GoogleMapTracker'; // Available for future use
 
 // Fix for default markers in React Leaflet
 delete (Icon.Default.prototype as any)._getIconUrl;
@@ -48,6 +50,7 @@ export const DroneMap: React.FC<DroneMapProps> = ({
   onMapClick 
 }) => {
   const [followDrone, setFollowDrone] = React.useState(true);
+  const [mapType, setMapType] = React.useState<'satellite' | 'street' | 'dark' | 'terrain'>('satellite');
   const mapRef = useRef<any>(null);
   
   // Default center coordinates (you can change this to your preferred location)
@@ -64,13 +67,57 @@ export const DroneMap: React.FC<DroneMapProps> = ({
     }
   };
 
+  // Map tile configurations
+  const mapConfigs = {
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: '&copy; <a href="https://www.esri.com/">Esri</a> &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
+    },
+    street: {
+      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    dark: {
+      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    },
+    terrain: {
+      url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+    }
+  };
+
+  // Handle map type change
+  const handleMapTypeChange = (newMapType: string) => {
+    setMapType(newMapType as any);
+  };
+
+  // Get drone heading for compass
+  const droneHeading = telemetry.navigation?.heading || 0;
+
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" style={{ minHeight: '400px' }}>
       {/* Map Controls */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-2">
+      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-2 space-y-2">
+        {/* Map Type Selector */}
+        <div className="flex flex-col space-y-1">
+          <label className="text-xs font-semibold text-gray-700">Map Type</label>
+          <select
+            value={mapType}
+            onChange={(e) => handleMapTypeChange(e.target.value)}
+            className="text-xs border rounded px-2 py-1 bg-white"
+          >
+            <option value="satellite">🛰️ Satellite</option>
+            <option value="street">🗺️ Street</option>
+            <option value="dark">🌙 Dark</option>
+            <option value="terrain">🏔️ Terrain</option>
+          </select>
+        </div>
+        
+        {/* Follow Drone Toggle */}
         <button
           onClick={() => setFollowDrone(!followDrone)}
-          className={`px-3 py-1 text-sm rounded ${
+          className={`px-3 py-1 text-sm rounded w-full ${
             followDrone 
               ? 'bg-blue-500 text-white' 
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -99,7 +146,7 @@ export const DroneMap: React.FC<DroneMapProps> = ({
         ref={mapRef}
         center={center}
         zoom={15}
-        className="h-full w-full"
+        style={{ height: '100%', width: '100%', minHeight: '400px' }}
         whenReady={() => {
           if (mapRef.current) {
             mapRef.current.on('click', handleMapClick);
@@ -107,8 +154,9 @@ export const DroneMap: React.FC<DroneMapProps> = ({
         }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={mapConfigs[mapType as keyof typeof mapConfigs]?.attribution || mapConfigs.satellite.attribution}
+          url={mapConfigs[mapType as keyof typeof mapConfigs]?.url || mapConfigs.satellite.url}
+          maxZoom={18}
         />
         
         <MapUpdater position={dronePosition} follow={followDrone} />
@@ -169,6 +217,15 @@ export const DroneMap: React.FC<DroneMapProps> = ({
           />
         )}
       </MapContainer>
+
+      {/* Advanced Drone Compass Overlay */}
+      <div className="absolute bottom-6 left-6 z-[1000]">
+        <DroneCompass 
+          heading={droneHeading} 
+          size={120} 
+          showLabel={true}
+        />
+      </div>
     </div>
   );
 };
