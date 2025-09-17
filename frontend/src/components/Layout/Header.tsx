@@ -153,14 +153,6 @@ export default function Header({ status, isConnected, connectionStatus, onConnec
 
         {/* Right Side - System Controls */}
         <div className="flex items-center space-x-4">
-          {/* Performance Indicator */}
-          <div className="hidden xl:flex items-center space-x-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-blue-400/30">
-            <Activity className="h-5 w-5 text-blue-400" />
-            <div className="flex flex-col">
-              <span className="text-xs text-blue-400 font-bold">98%</span>
-              <span className="text-xs text-gray-400">Efficiency</span>
-            </div>
-          </div>
 
           {/* Connection Control */}
           <button

@@ -71,20 +71,20 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
         <div className="absolute top-6 right-6 z-[1000] bg-white border border-cyan-400/30 rounded-xl p-3 min-w-[340px] max-h-[calc(100vh-100px)] overflow-y-auto">
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-5 w-5" />
-            <span className=" font-bold text-xl">Campaign Status </span>
+            <span className="font-bold text-2xl">Campaign Status</span>
           </div>
           
           {/* Priority 1: Flight Mode & Critical Status */}
           <div className="mb-2 bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ FLIGHT CONTROL</div>
-            <div className="grid grid-cols-1 text-base md:text-lg font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ FLIGHT CONTROL</div>
+            <div className="grid grid-cols-1 text-base font-mono">
               <div className="flex justify-between">
-                <span className="font-semibold">MODE:</span>
-                <span className="font-bold">{telemetry?.state?.mode || 'UNKNOWN'}</span>
+                <span className="font-semibold text-base">MODE:</span>
+                <span className="font-bold text-base">{telemetry?.state?.mode || 'UNKNOWN'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold">ARMED:</span>
-                <span className={`font-bold ${telemetry?.state?.armed ? 'text-red-400' : 'text-green-500'}`}>
+                <span className="font-semibold text-base">ARMED:</span>
+                <span className={`font-bold text-base ${telemetry?.state?.armed ? 'text-red-400' : 'text-green-500'}`}>
                   {telemetry?.state?.armed ? 'ARMED' : 'DISARMED'}
                 </span>
               </div>
@@ -93,93 +93,93 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
 
           {/* Priority 2: Power System */}
           <div className="mb-2 bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ POWER CORE</div>
-            <div className="grid grid-cols-2 text-base md:text-lg font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ POWER CORE</div>
+            <div className="grid grid-cols-2 text-base font-mono">
               <div className="font-bold">
-                BAT: <span className={`text-lg md:text-xl font-bold ${
+                BAT: <span className={`text-base font-bold ${
                   (telemetry?.battery?.level || 0) > 60 ? 'text-green-400' :
                   (telemetry?.battery?.level || 0) > 30 ? 'text-yellow-400' : 'text-red-400'
                 }`}>{telemetry?.battery?.level || 0}%</span>
               </div>
               <div className="font-bold">
-                VOLT: <span className="font-bold">{telemetry?.battery?.voltage?.toFixed(2) || '0.00'}V</span>
+                VOLT: <span className="font-bold text-base">{telemetry?.battery?.voltage?.toFixed(2) || '0.00'}V</span>
               </div>
               <div className="font-bold col-span-2">
-                AMP: <span className="font-bold">{telemetry?.battery?.current?.toFixed(2) || '0.00'}A</span>
+                AMP: <span className="font-bold text-base">{telemetry?.battery?.current?.toFixed(2) || '0.00'}A</span>
               </div>
             </div>
           </div>
 
           {/* Priority 3: Position & Attitude */}
           <div className="mb-2 bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ POSITION</div>
-            <div className="grid grid-cols-2 text-base md:text-lg font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ POSITION</div>
+            <div className="grid grid-cols-2 text-base font-mono">
               <div className="font-bold">
-                ALT: <span className="font-bold">{telemetry?.position?.altitude?.toFixed(1) || '0.0'}m</span>
+                ALT: <span className="font-bold text-base">{telemetry?.position?.altitude?.toFixed(1) || '0.0'}m</span>
               </div>
               <div className="font-bold">
-                YAW: <span className="font-bold">{((telemetry?.attitude?.yaw || 0) * 180 / Math.PI).toFixed(1)}°</span>
+                YAW: <span className="font-bold text-base">{((telemetry?.attitude?.yaw || 0) * 180 / Math.PI).toFixed(1)}°</span>
               </div>
               <div className="font-bold">
-                PITCH: <span className="font-bold">{((telemetry?.attitude?.pitch || 0) * 180 / Math.PI).toFixed(1)}°</span>
+                PITCH: <span className="font-bold text-base">{((telemetry?.attitude?.pitch || 0) * 180 / Math.PI).toFixed(1)}°</span>
               </div>
               <div className="font-bold">
-                ROLL: <span className="font-bold">{((telemetry?.attitude?.roll || 0) * 180 / Math.PI).toFixed(1)}°</span>
+                ROLL: <span className="font-bold text-base">{((telemetry?.attitude?.roll || 0) * 180 / Math.PI).toFixed(1)}°</span>
               </div>
             </div>
           </div>
 
           {/* Priority 4: Navigation */}
           <div className="mb-2 bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ NAVIGATION</div>
-            <div className="grid grid-cols-2 text-base md:text-lg font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ NAVIGATION</div>
+            <div className="grid grid-cols-2 text-base font-mono">
               <div className="font-bold">
-                GPS: <span className={`font-bold ${
+                GPS: <span className={`font-bold text-base ${
                   (telemetry?.navigation?.satellites_visible || 0) >= 6 ? 'text-green-400' :
                   (telemetry?.navigation?.satellites_visible || 0) >= 3 ? 'text-yellow-400' : 'text-red-400'
                 }`}>{telemetry?.navigation?.satellites_visible || 0}</span>
               </div>
               <div className="font-bold">
-                HDG: <span className="font-bold">{telemetry?.navigation?.heading?.toFixed(0) || '0'}°</span>
+                HDG: <span className="font-bold text-base">{telemetry?.navigation?.heading?.toFixed(0) || '0'}°</span>
               </div>
               <div className="font-bold col-span-2">
-                GS: <span className="font-bold">{telemetry?.navigation?.groundspeed?.toFixed(1) || '0.0'}m/s</span>
+                GS: <span className="font-bold text-base">{telemetry?.navigation?.groundspeed?.toFixed(1) || '0.0'}m/s</span>
               </div>
             </div>
           </div>
 
           {/* Priority 5: Velocity Vector */}
           <div className="mb-2 bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ VELOCITY</div>
-            <div className="grid grid-cols-3 gap-2 text-sm md:text-base font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ VELOCITY</div>
+            <div className="grid grid-cols-3 gap-2 text-base font-mono">
               <div className="text-center">
-                <div className="font-bold text-base md:text-lg">VX</div>
-                <div className="font-bold">{telemetry?.velocity?.vx?.toFixed(1) || '0.0'}</div>
+                <div className="font-bold text-base">VX</div>
+                <div className="font-bold text-base">{telemetry?.velocity?.vx?.toFixed(1) || '0.0'}</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-base md:text-lg">VY</div>
-                <div className="font-bold">{telemetry?.velocity?.vy?.toFixed(1) || '0.0'}</div>
+                <div className="font-bold text-base">VY</div>
+                <div className="font-bold text-base">{telemetry?.velocity?.vy?.toFixed(1) || '0.0'}</div>
               </div>
               <div className="text-center">
-                <div className="font-bold text-base md:text-lg">VZ</div>
-                <div className="font-bold">{telemetry?.velocity?.vz?.toFixed(1) || '0.0'}</div>
+                <div className="font-bold text-base">VZ</div>
+                <div className="font-bold text-base">{telemetry?.velocity?.vz?.toFixed(1) || '0.0'}</div>
               </div>
             </div>
           </div>
 
           {/* Additional System Info */}
           <div className="bg-gray-200 rounded-lg p-3 border border-cyan-400/10">
-            <div className="text-base md:text-lg font-bold mb-2 font-mono">◄ SYSTEM</div>
-            <div className="grid grid-cols-1 gap-2 text-base md:text-lg font-mono">
+            <div className="text-lg font-bold mb-2 font-mono">◄ SYSTEM</div>
+            <div className="grid grid-cols-1 gap-2 text-base font-mono">
               <div className="flex justify-between">
-                <span className="font-bold">EKF:</span>
-                <span className={`font-bold ${telemetry?.navigation?.ekf_ok ? 'text-green-400' : 'text-red-400'}`}>
+                <span className="font-bold text-base">EKF:</span>
+                <span className={`font-bold text-base ${telemetry?.navigation?.ekf_ok ? 'text-green-400' : 'text-red-400'}`}>
                   {telemetry?.navigation?.ekf_ok ? 'OK' : 'ERROR'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="font-bold">FIX:</span>
-                <span className="font-bold">{telemetry?.navigation?.fix_type || 0}</span>
+                <span className="font-bold text-base">FIX:</span>
+                <span className="font-bold text-base">{telemetry?.navigation?.fix_type || 0}</span>
               </div>
             </div>
           </div>
