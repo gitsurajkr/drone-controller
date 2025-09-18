@@ -22,8 +22,8 @@ export const useDroneData = () => {
   const [lastUpdate, setLastUpdate] = useState<number>(0);
   
   // Use refs to track polling intervals
-  const telemetryIntervalRef = useRef<number | null>(null);
-  const healthIntervalRef = useRef<number | null>(null);
+  const telemetryIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const healthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchTelemetry = useCallback(async () => {
     try {

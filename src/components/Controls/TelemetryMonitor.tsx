@@ -1,11 +1,9 @@
 // src/components/Controls/TelemetryMonitor.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Battery, 
   MapPin,
   Activity,
-  Wifi,
-  WifiOff,
   Compass,
   Plane,
   Target,
@@ -19,7 +17,7 @@ interface TelemetryMonitorProps {
 }
 
 export const TelemetryMonitor: React.FC<TelemetryMonitorProps> = ({ telemetry }) => {
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  // const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
 
   // Format coordinate values
   const formatCoordinate = (value: number, decimals: number = 6) => {
@@ -62,24 +60,24 @@ export const TelemetryMonitor: React.FC<TelemetryMonitorProps> = ({ telemetry })
     else return 'text-red-400';
   };
 
-  // Mock connect/disconnect function
-  const handleConnection = () => {
-    if (connectionStatus === 'disconnected') {
-      setConnectionStatus('connecting');
-      setTimeout(() => {
-        setConnectionStatus('connected');
-      }, 2000);
-    } else {
-      setConnectionStatus('disconnected');
-    }
-  };
+  // // Mock connect/disconnect function
+  // const handleConnection = () => {
+  //   if (connectionStatus === 'disconnected') {
+  //     setConnectionStatus('connecting');
+  //     setTimeout(() => {
+  //       setConnectionStatus('connected');
+  //     }, 2000);
+  //   } else {
+  //     setConnectionStatus('disconnected');
+  //   }
+  // };
 
-  useEffect(() => {
-    // Update connection status based on telemetry
-    if (telemetry?.connection_status === 'CONNECTED' || telemetry?.connection_status === 'LOCK_TIMEOUT') {
-      setConnectionStatus('connected');
-    }
-  }, [telemetry]);
+  // useEffect(() => {
+  //   // Update connection status based on telemetry
+  //   if (telemetry?.connection_status === 'CONNECTED' || telemetry?.connection_status === 'LOCK_TIMEOUT') {
+  //     setConnectionStatus('connected');
+  //   }
+  // }, [telemetry]);
 
   const yaw = telemetry?.attitude?.yaw || 0;
   const direction = getDirectionFromYaw(yaw);
