@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
       {/* Sidebar Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/5 via-transparent to-purple-400/5" />
       
-  <div className="relative p-6 flex flex-col h-full overflow-y-auto">
+      <div className="relative p-6 flex flex-col h-full">
         {/* Logo Section */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
