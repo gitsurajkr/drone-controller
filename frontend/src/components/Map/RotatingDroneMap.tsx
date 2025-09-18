@@ -37,7 +37,7 @@ const MapController: React.FC<{ center: [number, number] }> = ({ center }) => {
 
 const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) => {
   const [telemetryData, setTelemetryData] = useState<TelemetryData | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
+  // Removed unused connectionStatus state
   const wsRef = useRef<WebSocket | null>(null);
 
   // Get current position and yaw from telemetry
@@ -51,12 +51,12 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
   useEffect(() => {
     const connectWebSocket = () => {
       try {
-        setConnectionStatus('connecting');
+  // setConnectionStatus('connecting');
         wsRef.current = new WebSocket('ws://localhost:4000/telemetry');
 
         wsRef.current.onopen = () => {
           console.log('Connected to telemetry WebSocket');
-          setConnectionStatus('connected');
+          // setConnectionStatus('connected');
         };
 
         wsRef.current.onmessage = (event) => {
@@ -70,18 +70,18 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
 
         wsRef.current.onclose = () => {
           console.log('WebSocket connection closed');
-          setConnectionStatus('disconnected');
+          // setConnectionStatus('disconnected');
           // Attempt to reconnect after 3 seconds
           setTimeout(connectWebSocket, 3000);
         };
 
         wsRef.current.onerror = (error) => {
           console.error('WebSocket error:', error);
-          setConnectionStatus('disconnected');
+          // setConnectionStatus('disconnected');
         };
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
-        setConnectionStatus('disconnected');
+  // setConnectionStatus('disconnected');
         // Retry connection after 3 seconds
         setTimeout(connectWebSocket, 3000);
       }

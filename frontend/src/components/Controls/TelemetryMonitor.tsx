@@ -1,5 +1,5 @@
 // src/components/Controls/TelemetryMonitor.tsx
-import React, {  useEffect } from 'react';
+import React from 'react';
 import { 
   Battery, 
   MapPin,
