@@ -5,6 +5,7 @@ import {
   Battery, 
   Satellite,
   Zap,
+  Activity
 } from 'lucide-react';
 import droneImage from '../../assets/drone.png';
 import type { DroneStatus } from '../../types';

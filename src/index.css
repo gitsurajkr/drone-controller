@@ -1,0 +1,18 @@
+/* Leaflet Map Styles - Must be imported first */
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure map containers have proper dimensions */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 400px;
+}
+
+/* Fix z-index issues with Leaflet controls */
+.leaflet-control-container {
+  z-index: 999 !important;
+}
