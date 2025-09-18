@@ -140,29 +140,6 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
         />
       </MapContainer>
 
-      {/* Connection Status */}
-      <div className="absolute top-4 left-4 z-[1000] bg-black/80 text-white px-3 py-2 rounded-lg font-mono text-sm">
-        <div className="flex items-center space-x-2">
-          <div 
-            className={`w-2 h-2 rounded-full ${
-              connectionStatus === 'connected' 
-                ? 'bg-green-400 animate-pulse' 
-                : connectionStatus === 'connecting'
-                ? 'bg-yellow-400 animate-pulse'
-                : 'bg-red-400'
-            }`}
-          />
-          <span className={`text-xs ${
-            connectionStatus === 'connected' 
-              ? 'text-green-400' 
-              : connectionStatus === 'connecting'
-              ? 'text-yellow-400'
-              : 'text-red-400'
-          }`}>
-            {connectionStatus.toUpperCase()}
-          </span>
-        </div>
-      </div>
 
       {/* Live Telemetry Display */}
       <div className="absolute top-4 right-4 z-[1000] bg-black/80 text-cyan-400 px-3 py-2 rounded-lg font-mono text-sm">

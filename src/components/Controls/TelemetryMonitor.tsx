@@ -1,5 +1,5 @@
 // src/components/Controls/TelemetryMonitor.tsx
-import React from 'react';
+import React, {  useEffect } from 'react';
 import { 
   Battery, 
   MapPin,
@@ -70,7 +70,7 @@ export const TelemetryMonitor: React.FC<TelemetryMonitorProps> = ({ telemetry })
   //   } else {
   //     setConnectionStatus('disconnected');
   //   }
-  // };
+  // };+
 
   // useEffect(() => {
   //   // Update connection status based on telemetry
