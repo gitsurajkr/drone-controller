@@ -52,7 +52,7 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
     const connectWebSocket = () => {
       try {
   // setConnectionStatus('connecting');
-        wsRef.current = new WebSocket('ws://localhost:4000/telemetry');
+        wsRef.current = new WebSocket('ws://10.238.221.234:8765/telemetry');
 
         wsRef.current.onopen = () => {
           console.log('Connected to telemetry WebSocket');
@@ -81,8 +81,6 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
         };
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
-  // setConnectionStatus('disconnected');
-        // Retry connection after 3 seconds
         setTimeout(connectWebSocket, 3000);
       }
     };
@@ -142,7 +140,7 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
 
 
       {/* Live Telemetry Display */}
-      <div className="absolute top-4 right-4 z-[1000] bg-black/80 text-cyan-400 px-3 py-2 rounded-lg font-mono text-sm">
+      {/* <div className="absolute top-4 right-4 z-[1000] bg-black/80 text-cyan-400 px-3 py-2 rounded-lg font-mono text-sm">
         <div className="text-xs text-cyan-300 mb-1">TELEMETRY</div>
         <div className="space-y-1">
           <div className="text-xs">
@@ -160,7 +158,7 @@ const RotatingDroneMap: React.FC<RotatingDroneMapProps> = ({ className = "" }) =
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       {/* Bottom-Left Simple Compass Overlay */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-black/80 border border-cyan-400/30 rounded-lg p-2">

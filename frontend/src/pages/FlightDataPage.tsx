@@ -256,7 +256,7 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
                   {/* Map Controls */}
                   <div className="absolute top-4 left-4 z-[1000] bg-gray-900/80 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-2">
                     <div className="flex items-center space-x-3">
-                      <span className="text-cyan-400 font-bold font-mono text-sm">MAP:</span>
+                      {/* <span className="text-cyan-400 font-bold font-mono text-sm">MAP:</span> */}
                       <button
                         onClick={() => setUseRotatingMap(!useRotatingMap)}
                         className={`px-3 py-1 rounded text-xs font-mono transition-colors ${
@@ -265,7 +265,7 @@ export const FlightDataPage: React.FC<FlightDataPageProps> = ({
                             : 'bg-gray-700 text-cyan-400 hover:bg-gray-600'
                         }`}
                       >
-                        {useRotatingMap ? 'Rotating Drone' : 'Multi-Layer'}
+                        {useRotatingMap ? 'Multi-Layer' : 'Rotating Drone' }
                       </button>
                     </div>
                   </div>

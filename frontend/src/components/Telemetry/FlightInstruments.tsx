@@ -127,7 +127,7 @@ const FlightInstruments: React.FC<FlightInstrumentsProps> = ({ telemetry }) => {
           <div className="bg-gray-800/60 rounded-lg p-4 border border-cyan-400/10">
             <div className="text-xs text-cyan-400/70 mb-2 font-mono">ROLL</div>
             <div className="text-xl font-bold text-cyan-400 font-mono">
-              {formatValue(telemetry?.attitude?.roll ? telemetry.attitude.roll * 180 / Math.PI : 0, 1, '°')}
+                {formatValue(telemetry?.attitude?.roll ? telemetry.attitude.roll * 180 / Math.PI : 0, 1, '°')}
             </div>
           </div>
           

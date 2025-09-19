@@ -21,8 +21,6 @@ interface SidebarProps {
 
 const monitoringItems = [
   { id: 'flight-data', label: 'Live Telemetry', icon: Activity, color: 'cyan' },
-  { id: 'map-view', label: 'Tactical Map', icon: Map, color: 'green' },
-  { id: 'instruments', label: 'Flight Instruments', icon: Gauge, color: 'blue' },
   { id: 'data-logs', label: 'Data Archive', icon: Database, color: 'purple' },
   { id: 'system-health', label: 'System Health', icon: Monitor, color: 'emerald' },
   { id: 'analytics', label: 'Performance Analytics', icon: TrendingUp, color: 'violet' },

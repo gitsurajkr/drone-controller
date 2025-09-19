@@ -128,7 +128,7 @@ export const DroneMap: React.FC<DroneMapProps> = ({
       </div>
 
       {/* Telemetry Overlay */}
-      {telemetry.position && (
+      {/* {telemetry.position && (
         <div className="absolute top-4 left-4 z-[1000] bg-black/75 text-white rounded-lg p-3 text-sm">
           <div>Lat: {telemetry.position.latitude.toFixed(6)}</div>
           <div>Lon: {telemetry.position.longitude.toFixed(6)}</div>
@@ -140,7 +140,7 @@ export const DroneMap: React.FC<DroneMapProps> = ({
             <div>Heading: {telemetry.navigation.heading.toFixed(0)}°</div>
           )}
         </div>
-      )}
+      )} */}
 
       <MapContainer
         ref={mapRef}

@@ -313,5 +313,4 @@ export const TelemetryMonitor: React.FC<TelemetryMonitorProps> = ({ telemetry })
   );
 };
 
-// Export with the correct name for backward compatibility
 export const FlightControls = TelemetryMonitor;
